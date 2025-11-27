@@ -1,0 +1,417 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "4441e460",
+   "metadata": {
+    "_cell_guid": "b1076dfc-b9ad-4769-8c92-a6c4dae69d19",
+    "_uuid": "8f2839f25d086af736a60e9eeb907d3b93b6e0e5",
+    "execution": {
+     "iopub.execute_input": "2025-11-27T02:07:24.254875Z",
+     "iopub.status.busy": "2025-11-27T02:07:24.254441Z",
+     "iopub.status.idle": "2025-11-27T02:07:26.577737Z",
+     "shell.execute_reply": "2025-11-27T02:07:26.576508Z"
+    },
+    "papermill": {
+     "duration": 2.330411,
+     "end_time": "2025-11-27T02:07:26.579698",
+     "exception": false,
+     "start_time": "2025-11-27T02:07:24.249287",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# This Python 3 environment comes with many helpful analytics libraries installed\n",
+    "# It is defined by the kaggle/python Docker image: https://github.com/kaggle/docker-python\n",
+    "# For example, here's several helpful packages to load\n",
+    "\n",
+    "import numpy as np # linear algebra\n",
+    "import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)\n",
+    "\n",
+    "# Input data files are available in the read-only \"../input/\" directory\n",
+    "# For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory\n",
+    "\n",
+    "import os\n",
+    "for dirname, _, filenames in os.walk('/kaggle/input'):\n",
+    "    for filename in filenames:\n",
+    "        print(os.path.join(dirname, filename))\n",
+    "\n",
+    "# You can write up to 20GB to the current directory (/kaggle/working/) that gets preserved as output when you create a version using \"Save & Run All\" \n",
+    "# You can also write temporary files to /kaggle/temp/, but they won't be saved outside of the current session"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "e6ecd9a7",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-11-27T02:07:26.586798Z",
+     "iopub.status.busy": "2025-11-27T02:07:26.585950Z",
+     "iopub.status.idle": "2025-11-27T02:07:26.592076Z",
+     "shell.execute_reply": "2025-11-27T02:07:26.590178Z"
+    },
+    "papermill": {
+     "duration": 0.012,
+     "end_time": "2025-11-27T02:07:26.594303",
+     "exception": false,
+     "start_time": "2025-11-27T02:07:26.582303",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "import random"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "51b4fc3a",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-11-27T02:07:26.601685Z",
+     "iopub.status.busy": "2025-11-27T02:07:26.601320Z",
+     "iopub.status.idle": "2025-11-27T02:07:26.607020Z",
+     "shell.execute_reply": "2025-11-27T02:07:26.605690Z"
+    },
+    "papermill": {
+     "duration": 0.011693,
+     "end_time": "2025-11-27T02:07:26.609188",
+     "exception": false,
+     "start_time": "2025-11-27T02:07:26.597495",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# ===========================================\n",
+    "# 1. CONFIGURATIONS\n",
+    "# ===========================================\n",
+    "N = 48620\n",
+    "output_path = \"burger_king_data_realistic.xlsx\"\n",
+    "np.random.seed(42)  # agar reproducible"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "b53d0c7a",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-11-27T02:07:26.617861Z",
+     "iopub.status.busy": "2025-11-27T02:07:26.616625Z",
+     "iopub.status.idle": "2025-11-27T02:07:26.647511Z",
+     "shell.execute_reply": "2025-11-27T02:07:26.646391Z"
+    },
+    "papermill": {
+     "duration": 0.037594,
+     "end_time": "2025-11-27T02:07:26.649355",
+     "exception": false,
+     "start_time": "2025-11-27T02:07:26.611761",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# ===========================================\n",
+    "# 2. MENU DATA + KATEGORI\n",
+    "# ===========================================\n",
+    "menu_data = [\n",
+    "    (\"whopper\", \"Whopper Burger\", \"Beef Patty, Lettuce, Tomato, Onion, Pickles, Mayo\", \"Beef\"),\n",
+    "    (\"bk_chicken\", \"BK Chicken Burger\", \"Crispy Chicken, Lettuce, Mayo\", \"Chicken\"),\n",
+    "    (\"cheeseburger\", \"Cheeseburger\", \"Beef Patty, Cheese, Pickles, Ketchup, Mustard\", \"Beef\"),\n",
+    "    (\"double_steakhouse\", \"Double Steakhouse Burger\", \"Double Beef Patty, Crispy Onion, BBQ Sauce\", \"Premium\"),\n",
+    "    (\"plant_based_whopper\", \"Plant Based Whopper\", \"Plant Patty, Lettuce, Tomato, Vegan Mayo\", \"Veggie\"),\n",
+    "]\n",
+    "\n",
+    "df_menu = pd.DataFrame(menu_data, columns=[\"code\", \"burger_name\", \"burger_ingredients\", \"true_category\"])\n",
+    "\n",
+    "# Proporsi menu (lebih realistis)\n",
+    "menu_weights = [0.35, 0.20, 0.25, 0.10, 0.10]\n",
+    "\n",
+    "# Sampling menu berdasarkan probabilitas\n",
+    "df = df_menu.sample(n=N, replace=True, weights=menu_weights).reset_index(drop=True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "cbe94ed3",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-11-27T02:07:26.655829Z",
+     "iopub.status.busy": "2025-11-27T02:07:26.655427Z",
+     "iopub.status.idle": "2025-11-27T02:07:26.705773Z",
+     "shell.execute_reply": "2025-11-27T02:07:26.704398Z"
+    },
+    "papermill": {
+     "duration": 0.055414,
+     "end_time": "2025-11-27T02:07:26.707328",
+     "exception": false,
+     "start_time": "2025-11-27T02:07:26.651914",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# ===========================================\n",
+    "# 3. BURGER SIZE + DYNAMIC PRICING\n",
+    "# ===========================================\n",
+    "sizes = [\"S\", \"M\", \"L\"]\n",
+    "size_weights = [0.25, 0.50, 0.25]  # paling banyak M\n",
+    "\n",
+    "df[\"burger_size\"] = np.random.choice(sizes, size=N, p=size_weights)\n",
+    "\n",
+    "# Base price per menu\n",
+    "base_price = {\n",
+    "    \"whopper\": 35000,\n",
+    "    \"bk_chicken\": 30000,\n",
+    "    \"cheeseburger\": 28000,\n",
+    "    \"double_steakhouse\": 48000,\n",
+    "    \"plant_based_whopper\": 42000\n",
+    "}\n",
+    "\n",
+    "# Multiplier per size\n",
+    "size_multiplier = {\"S\": 1.0, \"M\": 1.2, \"L\": 1.4}\n",
+    "\n",
+    "df[\"unit_price\"] = [\n",
+    "    int(base_price[c] * size_multiplier[s])\n",
+    "    for c, s in zip(df[\"code\"], df[\"burger_size\"])\n",
+    "]\n",
+    "\n",
+    "# Optional discount (promo realistis)\n",
+    "df[\"discount\"] = np.where(np.random.rand(N) < 0.10, np.random.choice([2000, 3000, 5000], N), 0)\n",
+    "\n",
+    "# Final price per unit\n",
+    "df[\"final_unit_price\"] = df[\"unit_price\"] - df[\"discount\"]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "d49bb21c",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-11-27T02:07:26.714136Z",
+     "iopub.status.busy": "2025-11-27T02:07:26.713809Z",
+     "iopub.status.idle": "2025-11-27T02:07:26.747400Z",
+     "shell.execute_reply": "2025-11-27T02:07:26.746260Z"
+    },
+    "papermill": {
+     "duration": 0.04,
+     "end_time": "2025-11-27T02:07:26.749754",
+     "exception": false,
+     "start_time": "2025-11-27T02:07:26.709754",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# ===========================================\n",
+    "# 4. QUANTITY\n",
+    "# ===========================================\n",
+    "df[\"quantity\"] = np.random.choice(\n",
+    "    [1, 2, 3, 4],\n",
+    "    size=N,\n",
+    "    p=[0.60, 0.25, 0.10, 0.05]  # mayoritas beli 1–2\n",
+    ")\n",
+    "\n",
+    "df[\"total_price\"] = df[\"quantity\"] * df[\"final_unit_price\"]\n",
+    "\n",
+    "df[\"burger_name_id\"] = df[\"code\"] + \"_\" + df[\"burger_size\"].str.lower()\n",
+    "df[\"burger_category\"] = df[\"true_category\"]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "cc2d9e4b",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-11-27T02:07:26.756044Z",
+     "iopub.status.busy": "2025-11-27T02:07:26.755736Z",
+     "iopub.status.idle": "2025-11-27T02:07:27.631418Z",
+     "shell.execute_reply": "2025-11-27T02:07:27.629927Z"
+    },
+    "papermill": {
+     "duration": 0.88159,
+     "end_time": "2025-11-27T02:07:27.633804",
+     "exception": false,
+     "start_time": "2025-11-27T02:07:26.752214",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# ===========================================\n",
+    "# 5. REALISTIC DATE\n",
+    "# ===========================================\n",
+    "start_date = pd.to_datetime(\"2025-01-01\")\n",
+    "end_date   = pd.to_datetime(\"2025-12-31\")\n",
+    "\n",
+    "date_range = (end_date - start_date).days\n",
+    "\n",
+    "# Weekend lebih ramai → weighting\n",
+    "dates = []\n",
+    "for _ in range(N):\n",
+    "    offset = np.random.randint(0, date_range)\n",
+    "    d = start_date + pd.Timedelta(days=offset)\n",
+    "    if d.weekday() in [5, 6]:  # Saturday/Sunday\n",
+    "        if random.random() < 0.65:\n",
+    "            dates.append(d)\n",
+    "        else:\n",
+    "            # generate new weekday\n",
+    "            d = start_date + pd.Timedelta(days=np.random.randint(0, date_range))\n",
+    "            dates.append(d)\n",
+    "    else:\n",
+    "        dates.append(d)\n",
+    "\n",
+    "df[\"order_date\"] = dates"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "8366e4bb",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-11-27T02:07:27.640893Z",
+     "iopub.status.busy": "2025-11-27T02:07:27.640559Z",
+     "iopub.status.idle": "2025-11-27T02:07:28.186810Z",
+     "shell.execute_reply": "2025-11-27T02:07:28.185734Z"
+    },
+    "papermill": {
+     "duration": 0.551874,
+     "end_time": "2025-11-27T02:07:28.188686",
+     "exception": false,
+     "start_time": "2025-11-27T02:07:27.636812",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# ===========================================\n",
+    "# 6. REALISTIC ORDER TIME\n",
+    "# ===========================================\n",
+    "def realistic_time():\n",
+    "    r = random.random()\n",
+    "    if r < 0.50:  # lunch peak\n",
+    "        hour = np.random.randint(11, 14)\n",
+    "    elif r < 0.80:  # dinner peak\n",
+    "        hour = np.random.randint(17, 20)\n",
+    "    else:\n",
+    "        hour = np.random.randint(9, 22)\n",
+    "    return f\"{hour:02d}:{np.random.randint(0,60):02d}:{np.random.randint(0,60):02d}\"\n",
+    "\n",
+    "df[\"order_time\"] = [realistic_time() for _ in range(N)]\n",
+    "\n",
+    "# Create order ID randomized per day\n",
+    "df[\"order_id\"] = df.groupby(\"order_date\").cumcount() + 1\n",
+    "df[\"burger_id\"] = range(1, N+1)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "b619e52c",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-11-27T02:07:28.196213Z",
+     "iopub.status.busy": "2025-11-27T02:07:28.195883Z",
+     "iopub.status.idle": "2025-11-27T02:07:42.073505Z",
+     "shell.execute_reply": "2025-11-27T02:07:42.071502Z"
+    },
+    "papermill": {
+     "duration": 13.883914,
+     "end_time": "2025-11-27T02:07:42.075799",
+     "exception": false,
+     "start_time": "2025-11-27T02:07:28.191885",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Selesai! Data realistis berhasil dibuat di burger_king_data_realistic.xlsx\n"
+     ]
+    }
+   ],
+   "source": [
+    "# ===========================================\n",
+    "# 7. FINAL COLUMN ORDER & EXPORT\n",
+    "# ===========================================\n",
+    "cols_order = [\n",
+    "    \"burger_id\", \"order_id\", \"burger_name_id\",\n",
+    "    \"quantity\", \"order_date\", \"order_time\",\n",
+    "    \"unit_price\", \"discount\", \"final_unit_price\",\n",
+    "    \"total_price\",\n",
+    "    \"burger_size\", \"burger_category\",\n",
+    "    \"burger_ingredients\", \"burger_name\"\n",
+    "]\n",
+    "\n",
+    "df = df[cols_order]\n",
+    "df.to_excel(output_path, index=False)\n",
+    "\n",
+    "print(f\"Selesai! Data realistis berhasil dibuat di {output_path}\")"
+   ]
+  }
+ ],
+ "metadata": {
+  "kaggle": {
+   "accelerator": "none",
+   "dataSources": [],
+   "dockerImageVersionId": 31192,
+   "isGpuEnabled": false,
+   "isInternetEnabled": true,
+   "language": "python",
+   "sourceType": "notebook"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.13"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 25.027569,
+   "end_time": "2025-11-27T02:07:43.001253",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2025-11-27T02:07:17.973684",
+   "version": "2.6.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
